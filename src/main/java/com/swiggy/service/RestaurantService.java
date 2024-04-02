@@ -2,20 +2,27 @@ package com.swiggy.service;
 
 import com.swiggy.entity.Menu;
 import com.swiggy.entity.Restaurant;
-import com.swiggy.exception.ResourceNotFoundException;
+import com.swiggy.entity.UserInfo;
 import com.swiggy.payload.MenuDto;
 import com.swiggy.payload.RestaurantDto;
 import com.swiggy.repository.MenuRepository;
 import com.swiggy.repository.RestaurantRepository;
+import com.swiggy.repository.UserInfoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class RestaurantService {
+
+    @Autowired
+    private UserInfoRepository userInfoRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
 
     @Autowired
     private RestaurantRepository restaurantRepository;
@@ -68,10 +75,10 @@ public class RestaurantService {
     }
 
     public List<Restaurant> findRestaurantsByFoodName(String foodName) {
-        return restaurantRepository.findByMenusNameContainingIgnoreCase(foodName);
+        return restaurantRepository.findByMenusNameContainingIgnoreCase(foodName).orElseThrow(() -> new RuntimeException("Restaurant is not found"));
     }
 
-    public Menu saveMenu(MenuDto menuDto,long id) {
+    public Menu saveMenu(MenuDto menuDto, long id) {
         Optional<Restaurant> restaurant = restaurantRepository.findById(id);
         if (restaurant.isPresent()) {
             Menu menu = new Menu();
@@ -83,18 +90,27 @@ public class RestaurantService {
         }
         return null;
     }
-    public void deleteFood(long restaurantId,long id ) {
+
+    public void deleteFood(long restaurantId, long id) {
         Optional<Restaurant> restaurant = restaurantRepository.findById(restaurantId);
         if (restaurant.isPresent()) {
             menuRepository.deleteById(id);
         }
     }
+
     public void deleteRestaurant(long restaurantId) {
         restaurantRepository.deleteById(restaurantId);
     }
 
-    public Restaurant SearchRestaurants(String restaurantName) {
-        Restaurant restaurant = restaurantRepository.findByName(restaurantName);
-        return restaurant;
+    public List<Restaurant> findRestaurants(String restaurantName) {
+        List<Restaurant> restaurants = restaurantRepository.findByName(restaurantName).orElseThrow(() -> new RuntimeException("Restaurant is not found"));
+        return restaurants;
     }
+
+    public String signIn(UserInfo userInfo) {
+        userInfo.setPassword(passwordEncoder.encode(userInfo.getPassword()));
+        userInfoRepository.save(userInfo);
+        return "user added to system ";
+    }
+
 }

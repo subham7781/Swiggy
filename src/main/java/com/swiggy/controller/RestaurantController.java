@@ -3,12 +3,14 @@ package com.swiggy.controller;
 
 import com.swiggy.entity.Menu;
 import com.swiggy.entity.Restaurant;
+import com.swiggy.entity.UserInfo;
 import com.swiggy.payload.MenuDto;
 import com.swiggy.payload.RestaurantDto;
 import com.swiggy.service.RestaurantService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,14 +21,13 @@ public class RestaurantController {
     @Autowired
     private RestaurantService restaurantService;
 
+    // http://localhost:8080/api/create
+
     @PostMapping("/create")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<?> CreateRestaurant(@RequestBody RestaurantDto restaurantDto){
         RestaurantDto restaurant1 = restaurantService.saveRestaurant(restaurantDto);
         return new ResponseEntity<>(restaurant1, HttpStatus.CREATED);
-    }
-    @GetMapping("/search")
-    public List<Restaurant> searchRestaurantsByFoodName(@RequestParam String foodName) {
-        return restaurantService.findRestaurantsByFoodName(foodName);
     }
     @PostMapping("/Add")
     public ResponseEntity<?> AddMenu(@RequestBody MenuDto menuDto, @RequestParam long id){
@@ -44,9 +45,7 @@ public class RestaurantController {
         restaurantService.deleteRestaurant(restaurantId);
         return new ResponseEntity<>("Restaurant is deleted!!!",HttpStatus.OK);
     }
-    @GetMapping("/SearchRestaurants")
-    public ResponseEntity<?>SearchRestaurants(@RequestParam String restaurantName) {
-        Restaurant restaurant = restaurantService.SearchRestaurants(restaurantName);
-        return new ResponseEntity<>(restaurant,HttpStatus.OK);
-    }
+
+
+
 }
